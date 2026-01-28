@@ -24,6 +24,7 @@ function init() {
     initSmoothScroll();
     initScrollAnimations();
     initPageLoadAnimation();
+    initEditMode();
 }
 
 // Initialize Theme
@@ -51,19 +52,14 @@ function initLanguage() {
     if (savedLanguage) {
         currentLanguage = savedLanguage;
     } else {
-        // 强制默认使用英文
-        currentLanguage = 'en';
+        // 强制默认使用中文
+        currentLanguage = 'zh';
     }
     updateLanguageUI();
 }
 
 // Language Toggle
 function initLanguageToggle() {
-    // 强制清除语言保存记录，确保每次加载都默认英文
-    localStorage.removeItem('language');
-    
-    // 强制默认使用英文
-    currentLanguage = 'en';
     const languageToggle = document.querySelector('.language-toggle');
     if (languageToggle) {
         const languageBtns = languageToggle.querySelectorAll('.language-btn');
@@ -666,6 +662,9 @@ function initAvatarUpload() {
         const savedAvatar = localStorage.getItem('avatar');
         if (savedAvatar) {
             portrait.style.backgroundImage = `url(${savedAvatar})`;
+        } else {
+            // 使用本地默认头像
+            portrait.style.backgroundImage = `url(images/avatar/avatar.jpg)`;
         }
     });
 }
@@ -684,4 +683,378 @@ if (window.location.pathname.includes('index.html') || window.location.pathname 
 
 if (window.location.pathname.includes('works.html')) {
     document.addEventListener('DOMContentLoaded', initProjectCardNavigation);
+}
+
+// Edit Mode Functionality
+let isEditMode = false;
+
+// Initialize Edit Mode
+function initEditMode() {
+    // Add edit mode toggle button
+    addEditModeToggle();
+    
+    // Load saved content from localStorage
+    loadSavedContent();
+}
+
+// Add Edit Mode Toggle Button
+function addEditModeToggle() {
+    const headerContainer = document.querySelector('.header-container');
+    if (headerContainer) {
+        const editModeToggle = document.createElement('div');
+        editModeToggle.className = 'edit-mode-toggle';
+        editModeToggle.innerHTML = '<span>编辑模式</span>';
+        editModeToggle.style.cssText = `
+            position: relative;
+            display: inline-block;
+            margin-left: 1rem;
+            cursor: pointer;
+        `;
+        
+        const toggleSwitch = document.createElement('div');
+        toggleSwitch.className = 'toggle-switch';
+        toggleSwitch.style.cssText = `
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background-color: #ccc;
+            border-radius: 12px;
+            transition: background-color 0.3s;
+        `;
+        
+        const toggleKnob = document.createElement('div');
+        toggleKnob.className = 'toggle-knob';
+        toggleKnob.style.cssText = `
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        `;
+        
+        toggleSwitch.appendChild(toggleKnob);
+        editModeToggle.appendChild(toggleSwitch);
+        
+        // Insert after theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            headerContainer.insertBefore(editModeToggle, themeToggle.nextSibling);
+        }
+        
+        // Add click event
+        editModeToggle.addEventListener('click', () => {
+            isEditMode = !isEditMode;
+            toggleEditMode();
+        });
+    }
+}
+
+// Toggle Edit Mode
+function toggleEditMode() {
+    const toggleSwitch = document.querySelector('.toggle-switch');
+    const toggleKnob = document.querySelector('.toggle-knob');
+    
+    if (isEditMode) {
+        // Enable edit mode
+        toggleSwitch.style.backgroundColor = '#0071e3';
+        toggleKnob.style.transform = 'translateX(26px)';
+        enableEditMode();
+    } else {
+        // Disable edit mode
+        toggleSwitch.style.backgroundColor = '#ccc';
+        toggleKnob.style.transform = 'translateX(2px)';
+        disableEditMode();
+    }
+}
+
+// Enable Edit Mode
+function enableEditMode() {
+    // Make hero title editable
+    makeHeroTitleEditable();
+    
+    // Make hero tagline editable
+    makeHeroTaglineEditable();
+    
+    // Make logo editable
+    makeLogoEditable();
+    
+    // Make about content editable
+    makeAboutContentEditable();
+    
+    // Add background image upload functionality
+    addBackgroundImageUpload();
+}
+
+// Disable Edit Mode
+function disableEditMode() {
+    // Revert editable elements to regular text
+    revertEditableElements();
+}
+
+// Make Hero Title Editable
+function makeHeroTitleEditable() {
+    const heroTitle = document.querySelector('.hero-title');
+    if (heroTitle) {
+        const currentText = heroTitle.textContent;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentText;
+        input.style.cssText = `
+            font-size: inherit;
+            font-weight: inherit;
+            color: inherit;
+            background: transparent;
+            border: 1px solid #0071e3;
+            border-radius: 4px;
+            padding: 0.5rem;
+            width: 100%;
+            max-width: 300px;
+        `;
+        
+        input.addEventListener('blur', () => {
+            heroTitle.textContent = input.value;
+            heroTitle.style.display = 'block';
+            input.remove();
+            // Save to localStorage
+            localStorage.setItem('heroTitle', input.value);
+        });
+        
+        heroTitle.style.display = 'none';
+        heroTitle.parentNode.insertBefore(input, heroTitle);
+        input.focus();
+    }
+}
+
+// Make Hero Tagline Editable
+function makeHeroTaglineEditable() {
+    const heroTagline = document.querySelector('.hero-tagline');
+    if (heroTagline) {
+        const currentText = heroTagline.textContent;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentText;
+        input.style.cssText = `
+            font-size: inherit;
+            color: inherit;
+            background: transparent;
+            border: 1px solid #0071e3;
+            border-radius: 4px;
+            padding: 0.5rem;
+            width: 100%;
+            max-width: 300px;
+        `;
+        
+        input.addEventListener('blur', () => {
+            heroTagline.textContent = input.value;
+            heroTagline.style.display = 'block';
+            input.remove();
+            // Save to localStorage
+            localStorage.setItem('heroTagline', input.value);
+        });
+        
+        heroTagline.style.display = 'none';
+        heroTagline.parentNode.insertBefore(input, heroTagline);
+        input.focus();
+    }
+}
+
+// Make Logo Editable
+function makeLogoEditable() {
+    const logo = document.querySelector('.logo');
+    if (logo) {
+        const currentText = logo.textContent;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentText;
+        input.style.cssText = `
+            font-size: inherit;
+            font-weight: inherit;
+            color: inherit;
+            background: transparent;
+            border: 1px solid #0071e3;
+            border-radius: 4px;
+            padding: 0.5rem;
+            width: 100%;
+            max-width: 150px;
+        `;
+        
+        input.addEventListener('blur', () => {
+            logo.textContent = input.value;
+            logo.style.display = 'block';
+            input.remove();
+            // Save to localStorage
+            localStorage.setItem('logoText', input.value);
+        });
+        
+        logo.style.display = 'none';
+        logo.parentNode.insertBefore(input, logo);
+        input.focus();
+    }
+}
+
+// Make About Content Editable
+function makeAboutContentEditable() {
+    const aboutParagraphs = document.querySelectorAll('.about-content p');
+    aboutParagraphs.forEach((p, index) => {
+        const currentText = p.textContent;
+        const textarea = document.createElement('textarea');
+        textarea.value = currentText;
+        textarea.style.cssText = `
+            font-size: inherit;
+            color: inherit;
+            background: transparent;
+            border: 1px solid #0071e3;
+            border-radius: 4px;
+            padding: 0.5rem;
+            width: 100%;
+            min-height: 100px;
+            resize: vertical;
+        `;
+        
+        textarea.addEventListener('blur', () => {
+            p.textContent = textarea.value;
+            p.style.display = 'block';
+            textarea.remove();
+            // Save to localStorage
+            const aboutContent = JSON.parse(localStorage.getItem('aboutContent') || '{}');
+            aboutContent[index] = textarea.value;
+            localStorage.setItem('aboutContent', JSON.stringify(aboutContent));
+        });
+        
+        p.style.display = 'none';
+        p.parentNode.insertBefore(textarea, p);
+        textarea.focus();
+    });
+}
+
+// Add Background Image Upload
+function addBackgroundImageUpload() {
+    const body = document.body;
+    const uploadButton = document.createElement('button');
+    uploadButton.className = 'bg-upload-btn';
+    uploadButton.textContent = '上传背景图';
+    uploadButton.style.cssText = `
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        padding: 0.75rem 1.5rem;
+        background-color: #0071e3;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        z-index: 1000;
+    `;
+    
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    
+    uploadButton.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                // Update background image
+                const backgroundLayers = document.querySelectorAll('.background-layer');
+                if (backgroundLayers.length > 0) {
+                    backgroundLayers[0].style.backgroundImage = `url(${event.target.result})`;
+                }
+                // Save to localStorage
+                localStorage.setItem('backgroundImage', event.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    body.appendChild(uploadButton);
+    body.appendChild(fileInput);
+}
+
+// Revert Editable Elements
+function revertEditableElements() {
+    // Remove any remaining input/textarea elements
+    const editableInputs = document.querySelectorAll('.hero-title + input, .hero-tagline + input, .logo + input, .about-content textarea');
+    editableInputs.forEach(input => {
+        input.remove();
+    });
+    
+    // Show original elements
+    const heroTitle = document.querySelector('.hero-title');
+    const heroTagline = document.querySelector('.hero-tagline');
+    const logo = document.querySelector('.logo');
+    const aboutParagraphs = document.querySelectorAll('.about-content p');
+    
+    if (heroTitle) heroTitle.style.display = 'block';
+    if (heroTagline) heroTagline.style.display = 'block';
+    if (logo) logo.style.display = 'block';
+    aboutParagraphs.forEach(p => p.style.display = 'block');
+    
+    // Remove background upload button
+    const bgUploadBtn = document.querySelector('.bg-upload-btn');
+    if (bgUploadBtn) bgUploadBtn.remove();
+    
+    const fileInput = document.querySelector('input[type="file"][accept="image/*"]');
+    if (fileInput && fileInput.style.display === 'none') {
+        fileInput.remove();
+    }
+}
+
+// Load Saved Content from localStorage
+function loadSavedContent() {
+    // Load hero title
+    const savedHeroTitle = localStorage.getItem('heroTitle');
+    if (savedHeroTitle) {
+        const heroTitle = document.querySelector('.hero-title');
+        if (heroTitle) {
+            heroTitle.textContent = savedHeroTitle;
+        }
+    }
+    
+    // Load hero tagline
+    const savedHeroTagline = localStorage.getItem('heroTagline');
+    if (savedHeroTagline) {
+        const heroTagline = document.querySelector('.hero-tagline');
+        if (heroTagline) {
+            heroTagline.textContent = savedHeroTagline;
+        }
+    }
+    
+    // Load logo text
+    const savedLogoText = localStorage.getItem('logoText');
+    if (savedLogoText) {
+        const logo = document.querySelector('.logo');
+        if (logo) {
+            logo.textContent = savedLogoText;
+        }
+    }
+    
+    // Load about content
+    const savedAboutContent = localStorage.getItem('aboutContent');
+    if (savedAboutContent) {
+        const aboutContent = JSON.parse(savedAboutContent);
+        const aboutParagraphs = document.querySelectorAll('.about-content p');
+        aboutParagraphs.forEach((p, index) => {
+            if (aboutContent[index]) {
+                p.textContent = aboutContent[index];
+            }
+        });
+    }
+    
+    // Load background image
+    const savedBackgroundImage = localStorage.getItem('backgroundImage');
+    if (savedBackgroundImage) {
+        const backgroundLayers = document.querySelectorAll('.background-layer');
+        if (backgroundLayers.length > 0) {
+            backgroundLayers[0].style.backgroundImage = `url(${savedBackgroundImage})`;
+        }
+    }
 }
