@@ -605,32 +605,41 @@ function initPageLoadAnimation() {
 // Entry Card Navigation
 function initEntryCardNavigation() {
     entryCards.forEach(card => {
-        card.addEventListener('click', () => {
-            const cardTitle = card.querySelector('h3').textContent;
-            let targetUrl = '';
-            
-            switch (cardTitle) {
-                case 'About':
-                case '关于':
-                    targetUrl = 'about.html';
-                    break;
-                case 'Works':
-                case '作品':
-                    targetUrl = 'works.html';
-                    break;
-                case 'Blog':
-                case '博客':
-                    targetUrl = 'blog.html';
-                    break;
-                default:
-                    targetUrl = '#';
-            }
-            
-            if (targetUrl) {
-                window.location.href = targetUrl;
+        // 支持鼠标点击
+        card.addEventListener('click', () => navigateByCard(card));
+        // 支持键盘回车/空格
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('role', 'button');
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                navigateByCard(card);
             }
         });
     });
+    function navigateByCard(card) {
+        const cardTitle = card.querySelector('h3').textContent;
+        let targetUrl = '';
+        switch (cardTitle) {
+            case 'About':
+            case '关于':
+                targetUrl = 'about.html';
+                break;
+            case 'Works':
+            case '作品':
+                targetUrl = 'works.html';
+                break;
+            case 'Blog':
+            case '博客':
+                targetUrl = 'blog.html';
+                break;
+            default:
+                targetUrl = '#';
+        }
+        if (targetUrl) {
+            window.location.href = targetUrl;
+        }
+    }
 }
 
 // Project Card Navigation
@@ -764,28 +773,24 @@ function loadSavedContent() {
         });
     }
     
-    // Load blog content
+    // 仅当用户有自定义 blog 内容时才加载，否则优先多语言渲染
     const savedBlogContent = localStorage.getItem('blogContent');
     if (savedBlogContent) {
         const blogContent = JSON.parse(savedBlogContent);
         const blogPosts = document.querySelectorAll('.blog-post');
         blogPosts.forEach((post, postIndex) => {
             if (blogContent[postIndex]) {
-                // Load blog title
-                const blogTitle = post.querySelector('h3');
-                if (blogTitle && blogContent[postIndex].title) {
-                    blogTitle.textContent = blogContent[postIndex].title;
+                // 仅加载用户自定义内容（如有）
+                if (blogContent[postIndex].title) {
+                    const blogTitle = post.querySelector('h3');
+                    if (blogTitle) blogTitle.textContent = blogContent[postIndex].title;
                 }
-                
-                // Load blog date
-                const blogDate = post.querySelector('.blog-date');
-                if (blogDate && blogContent[postIndex].date) {
-                    blogDate.textContent = blogContent[postIndex].date;
+                if (blogContent[postIndex].date) {
+                    const blogDate = post.querySelector('.blog-date');
+                    if (blogDate) blogDate.textContent = blogContent[postIndex].date;
                 }
-                
-                // Load blog content
-                const blogParagraphs = post.querySelectorAll('.blog-content p');
                 if (blogContent[postIndex].content) {
+                    const blogParagraphs = post.querySelectorAll('.blog-content p');
                     blogParagraphs.forEach((p, paraIndex) => {
                         if (blogContent[postIndex].content[paraIndex]) {
                             p.textContent = blogContent[postIndex].content[paraIndex];
