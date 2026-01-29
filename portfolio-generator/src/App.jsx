@@ -5,7 +5,7 @@ import { generateZip } from "./utils/generateZip.js";
 import { Download } from "lucide-react";
 
 const initialData = {
-  name: "Alex Doe",
+  name: "IvoryThule",
   title: "Full Stack Developer",
   about:
     "热爱技术，专注于创造美好的用户体验。\n\n这里可以写一些更长的个人介绍、价值观或职业规划。",
@@ -43,7 +43,7 @@ const initialData = {
       link: "#",
     },
   ],
-  primaryColor: "#60a5fa",
+  primaryColor: "#000000ff",
   avatar: null,
   background: null,
   avatarPreview: "https://via.placeholder.com/256x256.png?text=Avatar",

@@ -13,12 +13,34 @@ export const IconMap = {
   web: Globe,
 };
 
-// 音乐播放逻辑已拆分到 ./music 文件夹，保留原有使用方式：
-// 在 Preview 中仍通过 <MusicPlayer playlist={data.playlist || DEFAULT_PLAYLIST} primaryColor={primary} /> 使用
+// ==================== 辅助函数：Hex 转 RGBA ====================
+const hexToRgba = (hex, alpha = 1) => {
+  let r = 0, g = 0, b = 0;
+  // 处理异常或空值，默认为黑色
+  if (!hex) return `rgba(0, 0, 0, ${alpha})`;
+  
+  // 处理简写 hex (例如 #fff)
+  if (hex.length === 4) {
+    r = parseInt(hex[1] + hex[1], 16);
+    g = parseInt(hex[2] + hex[2], 16);
+    b = parseInt(hex[3] + hex[3], 16);
+  } 
+  // 处理标准 hex (例如 #ffffff)
+  else if (hex.length === 7) {
+    r = parseInt(hex.slice(1, 3), 16);
+    g = parseInt(hex.slice(3, 5), 16);
+    b = parseInt(hex.slice(5, 7), 16);
+  }
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
 
 // ==================== 主预览组件 ====================
 export default function Preview({ data }) {
-  const primary = data.primaryColor || "#60a5fa";
+  const primary = data.primaryColor || "#000000ff";
+  
+  // 生成卡片背景色：使用主色调，透明度设为 0.25 (可在此处调整深浅)
+  // 如果想要更深一点，可以把 0.25 改成 0.4
+  const cardBackgroundColor = hexToRgba(primary, 0.25);
 
   return (
     <div className="relative min-h-full w-full flex items-center justify-center p-6 md:p-10 lg:p-16 bg-[#09090b] overflow-hidden font-sans text-slate-200">
@@ -55,10 +77,6 @@ export default function Preview({ data }) {
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .mask-image-linear-fade {
-          mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
-          -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
-        }
       `}</style>
 
       {/* 遮罩 */}
@@ -91,8 +109,9 @@ export default function Preview({ data }) {
         
         {/* 1. Profile */}
         <div 
-          className="md:col-span-2 rounded-3xl border border-white/10 bg-black/40 backdrop-blur-md p-6 sm:p-8 shadow-2xl animate-fade-up"
-          style={{ animationDelay: '0.6s' }}
+          className="md:col-span-2 rounded-3xl border border-white/10 backdrop-blur-md p-6 sm:p-8 shadow-2xl animate-fade-up"
+          // 修改点：使用动态背景色替换了原来的 bg-black/40
+          style={{ animationDelay: '0.6s', backgroundColor: cardBackgroundColor }}
         >
           <div className="flex flex-col md:flex-row md:items-center gap-6">
             <div className="flex-shrink-0 flex justify-center md:justify-start">
@@ -101,7 +120,8 @@ export default function Preview({ data }) {
             <div className="flex-1 text-center md:text-left space-y-3">
               <div>
                 <h1 className="text-3xl font-bold text-white tracking-tight drop-shadow-sm">{data.name || "你的名字"}</h1>
-                <p className="text-base font-medium mt-1" style={{ color: primary }}>{data.title || "Full Stack Developer"}</p>
+                {/* 修改点：这里的颜色改为普通的灰色，不再强制跟随 primary */}
+                <p className="text-base font-medium mt-1 text-gray-300">{data.title || "Full Stack Developer"}</p>
               </div>
               <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                 {data.tags?.map((tag, i) => (
@@ -125,15 +145,17 @@ export default function Preview({ data }) {
           </div>
         </div>
 
-        {/* 2. 音乐播放器 (集成) */}
+        {/* 2. 音乐播放器 */}
         <MusicPlayer playlist={data.playlist || DEFAULT_PLAYLIST} primaryColor={primary} />
 
         {/* 3. Tech Stack */}
         <div 
-          className="md:col-span-2 rounded-3xl border border-white/10 bg-black/40 backdrop-blur-md p-6 shadow-xl animate-fade-up"
-          style={{ animationDelay: '0.8s' }}
+          className="md:col-span-2 rounded-3xl border border-white/10 backdrop-blur-md p-6 shadow-xl animate-fade-up"
+          // 修改点：应用动态背景色
+          style={{ animationDelay: '0.8s', backgroundColor: cardBackgroundColor }}
         >
           <h2 className="text-sm font-semibold text-white/90 mb-4 flex items-center gap-2">
+            {/* 保留这个小装饰条跟随主色调，作为点缀 */}
             <span className="w-1 h-4 rounded-full" style={{background: primary}}></span>
             Tech Stack
           </h2>
@@ -146,8 +168,9 @@ export default function Preview({ data }) {
 
         {/* 4. Articles */}
         <div 
-          className="rounded-3xl border border-white/10 bg-black/40 backdrop-blur-md p-6 shadow-xl animate-fade-up"
-          style={{ animationDelay: '0.9s' }}
+          className="rounded-3xl border border-white/10 backdrop-blur-md p-6 shadow-xl animate-fade-up"
+          // 修改点：应用动态背景色
+          style={{ animationDelay: '0.9s', backgroundColor: cardBackgroundColor }}
         >
           <h2 className="text-sm font-semibold text-white/90 mb-4 flex items-center gap-2">
             <span className="w-1 h-4 rounded-full" style={{background: primary}}></span>
@@ -163,23 +186,19 @@ export default function Preview({ data }) {
           </div>
         </div>
 
-        {/* 5. Projects (修复了显示首字母的问题) */}
+        {/* 5. Projects */}
         {data.projects?.map((proj, i) => (
             <a
               key={i}
               href={proj.link}
               target="_blank"
               rel="noreferrer"
-              className="relative rounded-3xl border border-white/10 bg-black/40 backdrop-blur-md p-6 hover:-translate-y-1 hover:bg-black/50 hover:border-white/20 transition-all duration-300 shadow-xl group animate-fade-up flex flex-col h-full"
-              style={{ animationDelay: `${1.0 + (i * 0.15)}s` }}
+              // 修改点：移除了 hover:bg-black/50，因为内联背景色优先级更高。现在主要靠 border 和 translate 做 hover 效果
+              className="relative rounded-3xl border border-white/10 backdrop-blur-md p-6 hover:-translate-y-1 hover:border-white/30 transition-all duration-300 shadow-xl group animate-fade-up flex flex-col h-full"
+              // 修改点：应用动态背景色
+              style={{ animationDelay: `${1.0 + (i * 0.15)}s`, backgroundColor: cardBackgroundColor }}
             >
               <div className="flex justify-between items-start mb-4">
-                {/* 
-                   修复逻辑：
-                   1. 优先显示 proj.image (如果有图片URL)
-                   2. 否则显示一个漂亮的文件夹图标 
-                   3. 不再显示单一的首字母 
-                */}
                 <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-gray-700/50 to-gray-900/50 border border-white/10 flex items-center justify-center overflow-hidden">
                    {proj.image ? (
                      <img src={proj.image} alt={proj.title} className="w-full h-full object-cover" />

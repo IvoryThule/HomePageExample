@@ -127,7 +127,7 @@ export default function Editor({ data, setData }) {
               name="name"
               value={data.name}
               onChange={handleBasicChange}
-              placeholder="例如：Alex Doe"
+              placeholder="例如：IvoryThule"
             />
           </div>
           <div>
