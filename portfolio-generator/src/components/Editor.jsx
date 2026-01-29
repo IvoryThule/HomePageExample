@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import CategoryCard from "./ui/CategoryCard.jsx";
 import Input from "./ui/Input.jsx";
 import Textarea from "./ui/Textarea.jsx";
@@ -28,17 +28,21 @@ export default function Editor({ data, setData }) {
   const handleImageUpload = (e, field) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result;
-      if (!result || typeof result !== "string") return;
-      setData((prev) => ({
-        ...prev,
-        [field]: file,
-        [`${field}Preview`]: result,
-      }));
-    };
-    reader.readAsDataURL(file);
+    
+    // 创建新 URL
+    const objectUrl = URL.createObjectURL(file);
+    setData((prev) => ({
+      ...prev,
+      [field]: file,
+      [`${field}Preview`]: objectUrl,
+    }));
+
+    // 清理内存
+    useEffect(() => {
+      return () => {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+      };
+    }, [objectUrl]);
   };
 
   const addTag = () => {
@@ -198,7 +202,7 @@ export default function Editor({ data, setData }) {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => handleImageUpload(e, "background")}
+                onChange={(e) => handleImageUpload(e, "bg")}
                 className="block w-full text-[11px] text-gray-400 file:mr-2 file:px-2 file:py-1 file:text-[10px] file:rounded-md file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-500"
               />
               {data.bgPreview && (
