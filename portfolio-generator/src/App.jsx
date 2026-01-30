@@ -34,8 +34,8 @@ const initialData = {
       icon: "bilibili",
     },
     {
-      platform: "TikTok",
-      url: "https://tiktok.com/@yourname",
+      platform: "抖音",
+      url: "https://douyin.com/@yourname",
       icon: "tiktok",
     },
   ],
