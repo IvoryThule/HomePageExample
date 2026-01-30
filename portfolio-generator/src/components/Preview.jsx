@@ -200,7 +200,7 @@ export default function Preview({ data }) {
         </div>
 
         {/* 2. 音乐播放器 */}
-        <MusicPlayer playlist={data.playlist || DEFAULT_PLAYLIST} primaryColor={primary} />
+        <MusicPlayer playlist={DEFAULT_PLAYLIST} primaryColor={data.primaryColor} />
 
         {/* 3. Tech Stack */}
         <div

@@ -7,7 +7,7 @@ import { parseLrc } from "./lrc";
 import { secureUrl } from "./audioUtils";
 import { DEFAULT_PLAYLIST } from "./playlist"; 
 
-const MusicPlayer = ({ playlist = DEFAULT_PLAYLIST }) => {
+const MusicPlayer = ({ playlist = DEFAULT_PLAYLIST, primaryColor = "#000000ff" }) => {
   // === 状态管理 ===
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -170,10 +170,27 @@ const MusicPlayer = ({ playlist = DEFAULT_PLAYLIST }) => {
 
   const VolumeIcon = isMuted || volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
+  const getRgba = (hex, alpha) => {
+    let r = 0, g = 0, b = 0;
+    if (!hex) return `rgba(0, 0, 0, ${alpha})`;
+    if (hex.length === 4) {
+      r = parseInt(hex[1] + hex[1], 16);
+      g = parseInt(hex[2] + hex[2], 16);
+      b = parseInt(hex[3] + hex[3], 16);
+    } else if (hex.length === 7) {
+      r = parseInt(hex.slice(1, 3), 16);
+      g = parseInt(hex.slice(3, 5), 16);
+      b = parseInt(hex.slice(5, 7), 16);
+    }
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  const bgStyle = { backgroundColor: getRgba(primaryColor, 0.25) };
+
   return (
     <div 
-      className="md:col-span-1 rounded-3xl border border-white/10 bg-black/40 backdrop-blur-md p-5 shadow-xl relative overflow-hidden group animate-fade-up flex flex-col h-[280px]"
-      style={{ animationDelay: '0.7s' }}
+      className="md:col-span-1 rounded-3xl border border-white/10 backdrop-blur-md p-5 shadow-xl relative overflow-hidden group animate-fade-up flex flex-col h-[280px]"
+      style={{ animationDelay: '0.7s', ...bgStyle }}
     >
       <audio
         ref={audioRef}
