@@ -46,8 +46,9 @@ const initialData = {
   primaryColor: "#000000ff",
   avatar: null,
   background: null,
-  avatarPreview: "https://via.placeholder.com/256x256.png?text=Avatar",
-  bgPreview: "https://via.placeholder.com/1920x1080.png?text=Background",
+  // 默认使用 public 静态目录下的图片，Vite 会直接提供这些资源
+  avatarPreview: "/images/avatar/IUNO.png",
+  bgPreview: "/images/background/Iuno.jpg",
 };
 
 export default function App() {
