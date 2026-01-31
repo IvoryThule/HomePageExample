@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import CategoryCard from "./ui/CategoryCard.jsx";
 import Input from "./ui/Input.jsx";
 import Textarea from "./ui/Textarea.jsx";
@@ -17,6 +18,20 @@ const SOCIAL_ICON_OPTIONS = [
 ];
 
 export default function Editor({ data, setData }) {
+  const navigate = useNavigate();
+
+  const loggedUsername = typeof window !== "undefined" ? localStorage.getItem("loggedUsername") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("token");
+      localStorage.removeItem("loggedUsername");
+      localStorage.removeItem("remembered_username");
+    } catch (e) {}
+    navigate("/login");
+  };
+
   const updateField = (field, value) =>
     setData((prev) => ({ ...prev, [field]: value }));
 
@@ -121,6 +136,20 @@ export default function Editor({ data, setData }) {
 
   return (
     <div className="space-y-4 text-xs">
+      {/* 账户信息卡片（已登录时显示） */}
+      {token && (
+        <CategoryCard title="账户信息">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-300">已登录：{loggedUsername || "用户"}</div>
+            <Button
+              onClick={handleLogout}
+              className="!bg-red-900/40 !border-red-600/60 !text-red-300 hover:!bg-red-800/60"
+            >
+              退出登录
+            </Button>
+          </div>
+        </CategoryCard>
+      )}
       <CategoryCard title="Basic Info">
         <div className="space-y-2">
           <div>
@@ -129,7 +158,7 @@ export default function Editor({ data, setData }) {
             </label>
             <Input
               name="name"
-              value={data.name}
+              value={data.name || loggedUsername || ""}
               onChange={handleBasicChange}
               placeholder="例如：IvoryThule"
             />

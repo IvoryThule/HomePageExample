@@ -57,6 +57,8 @@ const hexToRgba = (hex, alpha = 1) => {
 export default function Preview({ data }) {
   const primary = data.primaryColor || "#000000ff";
 
+  const loggedUsername = typeof window !== "undefined" ? localStorage.getItem("loggedUsername") || "" : "";
+
   // 生成卡片背景色：使用主色调，透明度设为 0.25 (可在此处调整深浅)
   // 如果想要更深一点，可以把 0.25 改成 0.4
   const cardBackgroundColor = hexToRgba(primary, 0.25);
@@ -157,7 +159,7 @@ export default function Preview({ data }) {
             <div className="flex-1 text-center md:text-left space-y-3">
               <div>
                 <h1 className="text-3xl font-bold text-white tracking-tight drop-shadow-sm">
-                  {data.name || "你的名字"}
+                  {data.name || loggedUsername || "你的名字"}
                 </h1>
                 {/* 修改点：这里的颜色改为普通的灰色，不再强制跟随 primary */}
                 <p className="text-base font-medium mt-1 text-gray-300">

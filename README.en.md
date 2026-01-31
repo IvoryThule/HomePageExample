@@ -10,13 +10,13 @@ visual-homepage-builder contains multiple static portfolio templates and a visua
 
 Below is a short GIF that demonstrates exporting a generated static site from the visual editor.
 
-![Export demo GIF](./assets/gifs/导出静态网站演示.gif)
+![Export demo GIF](./MarkdownImages/gifs/导出静态网站演示.gif)
 
 Also see a screenshot of the editor UI:
 
-![Editor screenshot](./assets/screenshots/设置好信息之后的界面截图.png)
+![Editor screenshot](./MarkdownImages/screenshots/设置好信息之后的界面截图.png)
 
-Place additional screenshots or assets in `assets/` or `docs/` and update paths as needed.
+Place additional screenshots or assets in `MarkdownImages/` or `docs/` and update paths as needed.
 
 ---
 
@@ -74,7 +74,7 @@ frontend/   # visual editor (React + Vite)
 	│  └─ utils/
 	│     └─ generateZip.js
 backend/                # backend placeholder (optional API / deployment)
-assets/                # screenshots (PNG) and demo GIF
+MarkdownImages/                # screenshots (PNG) and demo GIF
 ```
 
 ---

@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Editor from "./components/Editor.jsx";
 import Preview from "./components/Preview.jsx";
 import { generateZip } from "./utils/generateZip.js";
 import { Download } from "lucide-react";
+import api from "./utils/api";
 
 const initialData = {
   name: "IvoryThule",
@@ -71,6 +72,37 @@ export default function App() {
   const [data, setData] = useState(initialData);
   const [exporting, setExporting] = useState(false);
   const [fullPreview, setFullPreview] = useState(false);
+  const [loadingRemote, setLoadingRemote] = useState(false);
+
+  // On mount: if token exists, try to fetch user config
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    (async () => {
+      try {
+        setLoadingRemote(true);
+        const res = await api.get("/config");
+        const cfg = res.data?.config;
+        const loggedUsername = localStorage.getItem("loggedUsername");
+        if (cfg) {
+          // merge remote config; if remote config has no name, fallback to loggedUsername
+          setData((prev) => ({ ...prev, ...cfg, name: cfg.name || loggedUsername || prev.name }));
+        } else if (loggedUsername) {
+          // no remote config, but we have a logged username — use it as default name
+          setData((prev) => ({ ...prev, name: loggedUsername }));
+        }
+      } catch (err) {
+        console.warn("Fetch remote config failed:", err);
+        // token might be invalid — remove and fall back to guest
+        try {
+          localStorage.removeItem("token");
+        } catch (e) {}
+        alert("获取云端配置失败，已退回游客模式");
+      } finally {
+        setLoadingRemote(false);
+      }
+    })();
+  }, []);
 
   const handleExport = async () => {
     try {
@@ -79,6 +111,24 @@ export default function App() {
     } catch (error) {
       console.error(error);
       alert("导出失败，请打开控制台查看错误信息。");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleSave = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.alert("登录后可云端保存");
+      return;
+    }
+    try {
+      setExporting(true);
+      await api.post("/config", { config: data });
+      alert("已保存到云端");
+    } catch (err) {
+      console.error(err);
+      alert("保存失败，请检查控制台和网络连接");
     } finally {
       setExporting(false);
     }
@@ -103,14 +153,23 @@ export default function App() {
             >
               预览完整页面
             </button>
-            <button
-              onClick={handleExport}
-              disabled={exporting}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[11px] font-semibold border border-blue-500/80 text-blue-100 bg-blue-600/20 hover:bg-blue-600/35 hover:border-blue-400 disabled:bg-gray-800 disabled:border-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              <Download size={14} />
-              {exporting ? "导出中..." : "导出网站"}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSave}
+                disabled={exporting}
+                className="px-3 py-1.5 rounded-md text-[11px] font-semibold border border-green-500/80 text-green-100 bg-green-600/10 hover:bg-green-600/20 disabled:bg-gray-800 disabled:border-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                保存
+              </button>
+              <button
+                onClick={handleExport}
+                disabled={exporting}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[11px] font-semibold border border-blue-500/80 text-blue-100 bg-blue-600/20 hover:bg-blue-600/35 hover:border-blue-400 disabled:bg-gray-800 disabled:border-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                <Download size={14} />
+                {exporting ? "导出中..." : "导出网站"}
+              </button>
+            </div>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-5 py-4 custom-scrollbar">
