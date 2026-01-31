@@ -43,8 +43,10 @@ async function authMiddleware(req, res, next) {
 }
 
 // Ensure uploads directory exists and serve it statically
-const uploadsDir = path.join(__dirname, 'public', 'uploads');
+// Default uploads dir: one level above backend, in 'uploads' folder (keeps it outside repo/public so deploys won't delete it)
+const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, '..', 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
+console.log('[uploads] serving uploads from', uploadsDir);
 app.use('/uploads', express.static(uploadsDir));
 
 // helper to create multer instance for avatar/bg kinds

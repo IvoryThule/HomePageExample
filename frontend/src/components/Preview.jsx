@@ -30,32 +30,55 @@ export const IconMap = {
   tiktok: AiFillTikTok,
 };
 
-// ==================== 辅助函数：Hex 转 RGBA ====================
+// ==================== 辅助函数：Hex 转 RGBA / 兼容 8 位 hex (#rrggbbaa) ====================
 const hexToRgba = (hex, alpha = 1) => {
-  let r = 0,
-    g = 0,
-    b = 0;
-  // 处理异常或空值，默认为黑色
+  let r = 0, g = 0, b = 0;
   if (!hex) return `rgba(0, 0, 0, ${alpha})`;
 
-  // 处理简写 hex (例如 #fff)
+  // 处理 #rgb
   if (hex.length === 4) {
     r = parseInt(hex[1] + hex[1], 16);
     g = parseInt(hex[2] + hex[2], 16);
     b = parseInt(hex[3] + hex[3], 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
-  // 处理标准 hex (例如 #ffffff)
-  else if (hex.length === 7) {
+
+  // 处理 #rrggbb
+  if (hex.length === 7) {
     r = parseInt(hex.slice(1, 3), 16);
     g = parseInt(hex.slice(3, 5), 16);
     b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+
+  // 处理 #rrggbbaa -> 把尾部 alpha 解析并与传入 alpha 叠加
+  if (hex.length === 9) {
+    r = parseInt(hex.slice(1, 3), 16);
+    g = parseInt(hex.slice(3, 5), 16);
+    b = parseInt(hex.slice(5, 7), 16);
+    const aByte = parseInt(hex.slice(7, 9), 16);
+    const aFromHex = Number.isFinite(aByte) ? aByte / 255 : 1;
+    return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, alpha * aFromHex))})`;
+  }
+
+  // 回退
+  return `rgba(0, 0, 0, ${alpha})`;
+};
+
+// 将 8 位 hex (#rrggbbaa) 或 3 位/6 位 hex 规范化为 6 位 hex（用于需要 hex 的 CSS 属性）
+const normalizeHex6 = (hex) => {
+  if (!hex) return '#000000';
+  if (hex.length === 9) {
+    // strip alpha
+    return '#' + hex.slice(1, 7);
+  }
+  if (hex.length === 7 || hex.length === 4) return hex;
+  return '#000000';
 };
 
 // ==================== 主预览组件 ====================
 export default function Preview({ data }) {
-  const primary = data.primaryColor || "#000000ff";
+  const primary = data.primaryColor || "#000000";
 
   const loggedUsername = typeof window !== "undefined" ? localStorage.getItem("loggedUsername") || "" : "";
 
@@ -118,9 +141,10 @@ export default function Preview({ data }) {
       {/* 背景 */}
       <div className="absolute inset-0 z-0">
         <img
-          src={data.bgPreview}
+          src={data.bgPreview || '/images/background/Iuno.jpg'}
           alt="Background"
           className="w-full h-full object-cover transition-opacity duration-700"
+          onError={(e) => { try { e.currentTarget.onerror = null; e.currentTarget.src = '/images/background/Iuno.jpg'; } catch (err){} }}
         />
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 overflow-hidden">
@@ -151,9 +175,10 @@ export default function Preview({ data }) {
           <div className="flex flex-col md:flex-row md:items-center gap-6">
             <div className="flex-shrink-0 flex justify-center md:justify-start">
               <img
-                src={data.avatarPreview}
+                src={data.avatarPreview || '/images/avatar/IUNO.png'}
                 alt="Avatar"
                 className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-2 border-white/20 shadow-lg"
+                onError={(e) => { try { e.currentTarget.onerror = null; e.currentTarget.src = '/images/avatar/IUNO.png'; } catch (err){} }}
               />
             </div>
             <div className="flex-1 text-center md:text-left space-y-3">
@@ -214,7 +239,7 @@ export default function Preview({ data }) {
             {/* 保留这个小装饰条跟随主色调，作为点缀 */}
             <span
               className="w-1 h-4 rounded-full"
-              style={{ background: primary }}
+              style={{ background: normalizeHex6(primary) }}
             ></span>
             Tech Stack
           </h2>

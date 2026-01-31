@@ -423,7 +423,7 @@ const hexToRgba = (hex, alpha = 1) => {
 };
 
 const Preview = ({ data }) => {
-  const primary = data.primaryColor || "#000000ff";
+  const primary = data.primaryColor || "#000000";
   const cardBackgroundColor = hexToRgba(primary, 0.25);
 
   return (

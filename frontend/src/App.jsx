@@ -85,8 +85,13 @@ export default function App() {
         const cfg = res.data?.config;
         const loggedUsername = localStorage.getItem("loggedUsername");
         if (cfg) {
-          // merge remote config; if remote config has no name, fallback to loggedUsername
-          setData((prev) => ({ ...prev, ...cfg, name: cfg.name || loggedUsername || prev.name }));
+          // merge remote config; ensure avatarPreview/bgPreview fall back to local defaults
+          setData((prev) => {
+            const merged = { ...prev, ...cfg, name: cfg.name || loggedUsername || prev.name };
+            merged.avatarPreview = cfg.avatarPreview || prev.avatarPreview || '/images/avatar/IUNO.png';
+            merged.bgPreview = cfg.bgPreview || prev.bgPreview || '/images/background/Iuno.jpg';
+            return merged;
+          });
         } else if (loggedUsername) {
           // no remote config, but we have a logged username — use it as default name
           setData((prev) => ({ ...prev, name: loggedUsername }));

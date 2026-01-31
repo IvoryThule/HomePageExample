@@ -7,7 +7,7 @@ import { parseLrc } from "./lrc";
 import { secureUrl } from "./audioUtils";
 import { DEFAULT_PLAYLIST } from "./playlist"; 
 
-const MusicPlayer = ({ playlist = DEFAULT_PLAYLIST, primaryColor = "#000000ff" }) => {
+const MusicPlayer = ({ playlist = DEFAULT_PLAYLIST, primaryColor = "#000000" }) => {
   // === 状态管理 ===
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -177,12 +177,23 @@ const MusicPlayer = ({ playlist = DEFAULT_PLAYLIST, primaryColor = "#000000ff" }
       r = parseInt(hex[1] + hex[1], 16);
       g = parseInt(hex[2] + hex[2], 16);
       b = parseInt(hex[3] + hex[3], 16);
-    } else if (hex.length === 7) {
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    if (hex.length === 7) {
       r = parseInt(hex.slice(1, 3), 16);
       g = parseInt(hex.slice(3, 5), 16);
       b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    if (hex.length === 9) {
+      r = parseInt(hex.slice(1, 3), 16);
+      g = parseInt(hex.slice(3, 5), 16);
+      b = parseInt(hex.slice(5, 7), 16);
+      const aByte = parseInt(hex.slice(7, 9), 16);
+      const aFromHex = Number.isFinite(aByte) ? aByte / 255 : 1;
+      return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, alpha * aFromHex))})`;
+    }
+    return `rgba(0, 0, 0, ${alpha})`;
   };
 
   const bgStyle = { backgroundColor: getRgba(primaryColor, 0.25) };
