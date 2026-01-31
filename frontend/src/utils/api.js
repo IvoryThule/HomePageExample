@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3001/api",
+  // Use relative path so production build calls /api on same origin.
+  // Nginx (or the web server) should proxy /api to the backend (http://127.0.0.1:3001).
+  baseURL: "/api",
   timeout: 10000,
 });
 
@@ -30,7 +32,7 @@ api.interceptors.response.use(
       } catch (e) {}
       // 重定向到登录页（相对路径）
       if (typeof window !== "undefined") {
-        window.location.href = "/";
+        window.location.href = "/login";
       }
     }
     return Promise.reject(error);
