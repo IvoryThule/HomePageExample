@@ -25,9 +25,9 @@ export default function Login() {
 
   // 初始化检查是否记住了用户名
   useEffect(() => {
-    const savedUser = localStorage.getItem("remembered_username");
-    if (savedUser) {
-      setUsername(savedUser);
+    const savedEmail = localStorage.getItem("remembered_email");
+    if (savedEmail) {
+      setEmail(savedEmail);
       setRememberMe(true);
     }
   }, []);
@@ -47,7 +47,7 @@ export default function Login() {
       }
 
       const endpoint = mode === "login" ? "/auth/login" : "/auth/register";
-      const body = mode === "login" ? { username, password } : { username, email, password };
+      const body = mode === "login" ? { email, password } : { username, email, password };
       const res = await api.post(endpoint, body);
       const { token, username: loggedUsername } = res.data;
 
@@ -59,9 +59,10 @@ export default function Login() {
         localStorage.setItem("loggedUsername", loggedUsername || username);
 
         if (rememberMe) {
-          localStorage.setItem("remembered_username", username);
+          // remember login email
+          localStorage.setItem("remembered_email", email);
         } else {
-          localStorage.removeItem("remembered_username");
+          localStorage.removeItem("remembered_email");
         }
 
         navigate("/editor");
@@ -146,14 +147,15 @@ export default function Login() {
           <form onSubmit={submit} className="space-y-5">
             <div className="space-y-5">
               <div className="group">
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{mode === 'login' ? '用户名 / 邮箱' : '用户名'}</label>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{mode === 'login' ? '邮箱' : '用户名'}</label>
                 <div className="relative">
                   <input
                     required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    type={mode === 'login' ? 'email' : 'text'}
+                    value={mode === 'login' ? email : username}
+                    onChange={(e) => mode === 'login' ? setEmail(e.target.value) : setUsername(e.target.value)}
                     className="w-full h-12 pl-4 pr-10 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-black/60 focus:ring-1 focus:ring-blue-500/20 transition-all font-mono text-sm backdrop-blur-sm caret-blue-500"
-                    placeholder={mode === 'login' ? '输入用户名或邮箱' : '输入用户名'}
+                    placeholder={mode === 'login' ? '输入邮箱' : '输入用户名'}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none group-focus-within:text-blue-400 transition-colors">
                     <Icons.User />

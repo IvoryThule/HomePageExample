@@ -57,6 +57,13 @@ router.post("/auth/register", async (req, res) => {
 	}
 
 	try {
+		// Check if email already exists
+		const [found] = await pool.execute("SELECT id FROM users WHERE email = ? LIMIT 1", [email]);
+		if (found && found.length > 0) {
+			console.log(`[auth/register] email already registered email=${email}`);
+			return res.status(409).json({ message: "邮箱已被注册" });
+		}
+
 		const password_hash = await bcrypt.hash(password, 10);
 		const [result] = await pool.execute(
 			"INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
@@ -64,13 +71,13 @@ router.post("/auth/register", async (req, res) => {
 		);
 		const userId = result.insertId;
 		console.log(`[auth/register] created userId=${userId} username=${username} email=${email}`);
-		const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: "7d" });
+		const token = jwt.sign({ userId, email, username }, JWT_SECRET, { expiresIn: "24h" });
 		return res.status(201).json({ message: "registered", token, username });
 	} catch (err) {
 		console.error(err);
 		if (err && err.code === "ER_DUP_ENTRY") {
 			console.log(`[auth/register] duplicate entry username=${username} email=${email}`);
-			return res.status(409).json({ message: "用户名或邮箱已存在" });
+			return res.status(409).json({ message: "邮箱或用户名已存在" });
 		}
 		return res.status(500).json({ message: "server error" });
 	}
@@ -78,29 +85,29 @@ router.post("/auth/register", async (req, res) => {
 
 // Login
 router.post("/auth/login", async (req, res) => {
-	const { username, password } = req.body || {};
-	console.log(`[auth/login] attempt username=${username}`);
-	if (!username || !password) {
-		return res.status(400).json({ message: "username and password are required" });
+	// Login by email only
+	const { email, password } = req.body || {};
+	console.log(`[auth/login] attempt email=${email}`);
+	if (!email || !password) {
+		return res.status(400).json({ message: "email and password are required" });
 	}
 	try {
-		// Support login by username OR email
 		const [rows] = await pool.execute(
-			"SELECT id, username AS stored_username, password_hash FROM users WHERE username = ? OR email = ? LIMIT 1",
-			[username, username]
+			"SELECT id, username AS stored_username, password_hash FROM users WHERE email = ? LIMIT 1",
+			[email]
 		);
 		const user = rows[0];
 		if (!user) {
-			console.log(`[auth/login] missing user username=${username}`);
-			return res.status(401).json({ message: "无效的用户名或密码" });
+			console.log(`[auth/login] missing user email=${email}`);
+			return res.status(401).json({ message: "无效的邮箱或密码" });
 		}
 		const match = await bcrypt.compare(password, user.password_hash);
 		if (!match) {
-			console.log(`[auth/login] invalid password username=${username}`);
-			return res.status(401).json({ message: "无效的用户名或密码" });
+			console.log(`[auth/login] invalid password email=${email}`);
+			return res.status(401).json({ message: "无效的邮箱或密码" });
 		}
-		const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
-		const returnedUsername = user.stored_username || username;
+		const returnedUsername = user.stored_username || '';
+		const token = jwt.sign({ userId: user.id, email: email, username: returnedUsername }, JWT_SECRET, { expiresIn: '24h' });
 		console.log(`[auth/login] success userId=${user.id} username=${returnedUsername}`);
 		return res.json({ token, username: returnedUsername });
 	} catch (err) {
