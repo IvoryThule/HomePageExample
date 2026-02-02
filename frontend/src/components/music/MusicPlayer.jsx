@@ -4,7 +4,7 @@ import {
   X, Volume2, VolumeX, Volume1 
 } from "lucide-react";
 import { parseLrc } from "./lrc";
-import { fetchQQPlayUrl, fetchQQLyric, fetchNeteaseLyric } from "../../utils/musicApi";
+import { fetchQQPlayUrl, fetchQQLyric, fetchNeteaseLyric, fetchNeteaseSongUrl } from '../../utils/musicApi';
 import { DEFAULT_PLAYLIST } from "./playlist"; 
 
 const MusicPlayer = ({ playlist = [], primaryColor = "#000000" }) => {
@@ -47,10 +47,12 @@ const MusicPlayer = ({ playlist = [], primaryColor = "#000000" }) => {
     
     const fallbackUrl = `https://music.163.com/song/media/outer/url?id=${currentSong.id}.mp3`;
     
+    // QQ 音乐：使用现有 src 或为空（后续异步获取）
     if (currentSong.platform === 'qq') {
        setRealSrc(currentSong.src || ""); 
     } else {
-       setRealSrc(currentSong.src || fallbackUrl);
+       // 网易云：先设置为空，强制异步刷新（避免使用过期链接）
+       setRealSrc("");
     }
     
     if (currentSong.lrc) {
@@ -58,6 +60,7 @@ const MusicPlayer = ({ playlist = [], primaryColor = "#000000" }) => {
     }
 
     const loadResources = async () => {
+      // QQ 音乐：需要实时获取播放链接
       if (currentSong.platform === 'qq' && !currentSong.src) {
         try {
           const url = await fetchQQPlayUrl(currentSong.id);
@@ -65,18 +68,32 @@ const MusicPlayer = ({ playlist = [], primaryColor = "#000000" }) => {
         } catch (e) { console.error(e); }
       }
 
+      // 网易云：主动刷新播放链接（解决过期问题）
+      if (currentSong.platform === 'netease') {
+        try {
+          const freshUrl = await fetchNeteaseSongUrl(currentSong.id);
+          if (isMounted && freshUrl) {
+            setRealSrc(freshUrl);
+          }
+        } catch (e) {
+          console.warn('Refresh Netease URL failed', e);
+          if (isMounted) setRealSrc(fallbackUrl);
+        }
+      }
+
+      // 歌词加载
       if (!currentSong.lrc) {
         try {
-          let lrc = "";
+          let lrcText = "";
           if (currentSong.platform === 'qq') {
-            lrc = await fetchQQLyric(currentSong.id);
+            lrcText = await fetchQQLyric(currentSong.id);
           } else {
-            lrc = await fetchNeteaseLyric(currentSong.id);
+            lrcText = await fetchNeteaseLyric(currentSong.id);
           }
-          if (isMounted && lrc) {
-            setRealLrc(lrc);
+          if (isMounted && lrcText) {
+            setRealLrc(lrcText);
           }
-        } catch (e) { console.error(e); }
+        } catch (e) { console.warn(e); }
       }
     };
 

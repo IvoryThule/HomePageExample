@@ -92,6 +92,18 @@ export const fetchNeteaseLyric = async (songId) => {
   }
 };
 
+// 获取单首网易云歌曲的播放链接（用于刷新过期链接）
+export const fetchNeteaseSongUrl = async (songId) => {
+  try {
+    const res = await axios.get(`${NETEASE_BASE}/song/url?id=${songId}`);
+    const urlData = res?.data?.data?.[0];
+    return urlData?.url || getNeteaseFallbackUrl(songId);
+  } catch (error) {
+    console.warn('fetchNeteaseSongUrl failed', error);
+    return getNeteaseFallbackUrl(songId);
+  }
+};
+
 // ==========================================
 // QQ 音乐逻辑 (重写版)
 // ==========================================
