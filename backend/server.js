@@ -44,7 +44,18 @@ async function authMiddleware(req, res, next) {
 
 // Ensure uploads directory exists and serve it statically
 // Use process.cwd()/uploads by default so uploads live next to deployed app root
-const uploadsDir = process.env.UPLOADS_DIR || path.join(process.cwd(), 'uploads');
+
+const prodUploadPath = '/var/www/ivory_storage/uploads';
+// 简单的环境判断：如果是 Linux 且该持久化目录的父级存在，则认为是服务器环境
+// 否则，还是用原来的本地 uploads 目录
+let targetDir;
+if (process.platform === 'linux' && fs.existsSync('/var/www/ivory_storage')) {
+    targetDir = prodUploadPath;
+} else {
+    targetDir = path.join(process.cwd(), 'uploads');
+}
+const uploadsDir = process.env.UPLOADS_DIR || targetDir;
+
 fs.mkdirSync(uploadsDir, { recursive: true });
 console.log('[uploads] serving uploads from', uploadsDir);
 app.use('/uploads', express.static(uploadsDir));
