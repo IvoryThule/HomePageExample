@@ -7,13 +7,15 @@ export const DEFAULT_PLAYLIST = [
     title: "等风来",
     artist: "Parion圆周率",
     cover: "https://p2.music.126.net/FNzch14tbbIHwHH4wlcW_A==/109951165411841248.jpg",
-    lrc: "纯音乐~"
+    lrc: "纯音乐~",
+    platform: 'netease'
   },
   {
     id: 3340137252,
     title: "纸飞机",
     artist: "鸣潮先约电台 / 飞行雪绒",
     cover: "https://p1.music.126.net/JP0G2ELXQGfeTvzEsOqeCw==/109951172603135736.jpg",
+    platform: 'netease',
     lrc: `[00:09.000] 人声修音 : 欧阳嘉豪 (sof.)
 [00:30.359]It's magic when snowflakes could cling
 [00:36.595]Like powdered stardust on your skin, glistening

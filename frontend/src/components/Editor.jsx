@@ -154,11 +154,13 @@ export default function Editor({ data, setData }) {
 
   // 2. 网易云导入
   const handleNeteaseImport = async () => {
-    if (!musicInput) return alert("请输入歌单 ID");
+    // 支持如果不输入，使用默认歌单 ID
+    const targetId = musicInput.trim() || "17606278641"; 
+    
     setMusicLoading(true);
     try {
       // 调用我们在 musicApi.js 里写的函数
-      const songs = await fetchNeteasePlaylist(musicInput);
+      const songs = await fetchNeteasePlaylist(targetId);
       if (songs.length === 0) {
         alert("未找到歌曲，请检查 ID 或确认歌单公开");
       } else {
@@ -386,15 +388,22 @@ export default function Editor({ data, setData }) {
           <div className="space-y-3">
             <div className="bg-blue-900/10 border border-blue-900/30 p-2 rounded text-[10px] text-blue-200/70">
               <p>提示：输入网易云<b>歌单 ID</b>（数字）。最多导入50首歌曲</p>
-              <p>例如链接 `playlist?id=24381616` 中的 `24381616`。</p>
+              <p>若不输入任何内容，将默认使用推荐歌单 (ID: 17606278641)</p>
             </div>
             <div className="flex gap-2">
               <Input 
                 value={musicInput} 
                 onChange={(e) => setMusicInput(e.target.value)} 
-                placeholder="输入歌单 ID..." 
+                placeholder="输入歌单 ID (留空使用默认)" 
               />
-              <Button onClick={handleNeteaseImport} disabled={musicLoading}>
+              <Button onClick={() => {
+                 if (!musicInput.trim()) {
+                   setMusicInput("17606278641");
+                   handleNeteaseImport(); // 注意：这可能因为 state 异步更新问题而不生效，最好在 handleNeteaseImport 内部判断
+                 } else {
+                   handleNeteaseImport();
+                 }
+              }} disabled={musicLoading}>
                 {musicLoading ? "..." : <CloudDownload size={14} />}
               </Button>
             </div>

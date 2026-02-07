@@ -60,8 +60,11 @@ const MusicPlayer = ({ playlist = [], primaryColor = "#000000" }) => {
     }
 
     const loadResources = async () => {
+      // 确定平台：默认为 netease
+      const platform = currentSong.platform || 'netease';
+
       // QQ 音乐：需要实时获取播放链接
-      if (currentSong.platform === 'qq' && !currentSong.src) {
+      if (platform === 'qq' && !currentSong.src) {
         try {
           const url = await fetchQQPlayUrl(currentSong.id);
           if (isMounted && url) setRealSrc(url);
@@ -69,7 +72,7 @@ const MusicPlayer = ({ playlist = [], primaryColor = "#000000" }) => {
       }
 
       // 网易云：主动刷新播放链接（解决过期问题）
-      if (currentSong.platform === 'netease') {
+      if (platform === 'netease') {
         try {
           const freshUrl = await fetchNeteaseSongUrl(currentSong.id);
           if (isMounted && freshUrl) {
@@ -85,7 +88,7 @@ const MusicPlayer = ({ playlist = [], primaryColor = "#000000" }) => {
       if (!currentSong.lrc) {
         try {
           let lrcText = "";
-          if (currentSong.platform === 'qq') {
+          if (platform === 'qq') {
             lrcText = await fetchQQLyric(currentSong.id);
           } else {
             lrcText = await fetchNeteaseLyric(currentSong.id);
